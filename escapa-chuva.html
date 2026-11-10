@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo Simples - VS Code & Live Server</title>
+    <style>
+        body {
+            margin: 0;
+            background: #222;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+            font-family: Arial, sans-serif;
+            flex-direction: column;
+        }
+        canvas {
+            background: #111;
+            border: 4px solid #fff;
+        }
+        #score {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="score">Pontos: 0</div>
+    <canvas id="gameCanvas" width="400" height="500"></canvas>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const scoreElement = document.getElementById("score");
+
+        // Configurações do Jogador (Quadrado Azul)
+        const player = { x: 180, y: 440, size: 40, speed: 8, color: "#00a8ff" };
+
+        // Configurações do Inimigo (Quadrado Vermelho)
+        const enemy = { x: Math.random() * 360, y: 0, size: 40, speed: 4, color: "#e84118" };
+
+        let score = 0;
+        let keys = {};
+
+        // Detecta teclas pressionadas
+        window.addEventListener("keydown", (e) => keys[e.key] = true);
+        window.addEventListener("keyup", (e) => keys[e.key] = false);
+
+        function update() {
+            // Movimentação do jogador (Setas Esquerda/Direita)
+            if (keys["ArrowLeft"] && player.x > 0) player.x -= player.speed;
+            if (keys["ArrowRight"] && player.x < canvas.width - player.size) player.x += player.speed;
+
+            // Movimentação do inimigo
+            enemy.y += enemy.speed;
+
+            // Se o inimigo passar do final da tela (Ponto)
+            if (enemy.y > canvas.height) {
+                enemy.y = 0;
+                enemy.x = Math.random() * (canvas.width - enemy.size);
+                score++;
+                scoreElement.innerText = "Pontos: " + score;
+                if (score % 5 === 0) enemy.speed += 1; // Aumenta a dificuldade
+            }
+
+            // Detecção de colisão (Game Over)
+            if (
+                player.x < enemy.x + enemy.size &&
+                player.x + player.size > enemy.x &&
+                player.y < enemy.y + enemy.size &&
+                player.y + player.size > enemy.y
+            ) {
+                alert("Game Over! Sua pontuação: " + score);
+                // Reinicia o jogo
+                score = 0;
+                enemy.speed = 4;
+                enemy.y = 0;
+                player.x = 180;
+                scoreElement.innerText = "Pontos: 0";
+            }
+        }
+
+        function draw() {
+            // Limpa o canvas a cada frame
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Desenha o jogador
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, player.y, player.size, player.size);
+
+            // Desenha o inimigo
+            ctx.fillStyle = enemy.color;
+            ctx.fillRect(enemy.x, enemy.y, enemy.size, enemy.size);
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Inicia o jogo
+        gameLoop();
+    </script>
+</body>
+</html>
